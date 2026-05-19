@@ -9,7 +9,7 @@ type OrderItem = {
   quantity: number;
 };
 
-export default function OrderConfirmationPage(): JSX.Element {
+export default function OrderConfirmationPage() {
   const { orderId = '' } = useParams();
 
   const mockOrder = useMemo(

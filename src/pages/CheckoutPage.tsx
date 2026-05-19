@@ -1,13 +1,10 @@
 import { FormEvent, useMemo, useState } from 'react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { useNavigate } from 'react-router-dom';
 
 const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ?? '';
 const shouldUseMockCheckout = /mock|placeholder/i.test(stripeKey);
-const stripePromise = shouldUseMockCheckout ? null : loadStripe(stripeKey);
 
-function OrderSummarySidebar(): JSX.Element {
+function OrderSummarySidebar() {
   return (
     <aside className="rounded-lg border p-4">
       <h2 className="mb-3 text-lg font-semibold">Order Summary</h2>
@@ -20,7 +17,7 @@ function OrderSummarySidebar(): JSX.Element {
   );
 }
 
-function MockCheckoutForm(): JSX.Element {
+function MockCheckoutForm() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
@@ -47,25 +44,17 @@ function MockCheckoutForm(): JSX.Element {
   );
 }
 
-function RealCheckoutPlaceholder(): JSX.Element {
+function RealCheckoutPlaceholder() {
   return <div className="rounded-lg border p-4">Stripe checkout renders here.</div>;
 }
 
-export default function CheckoutPage(): JSX.Element {
+export default function CheckoutPage() {
   const content = useMemo(() => {
     if (shouldUseMockCheckout) {
       return <MockCheckoutForm />;
     }
 
-    if (!stripePromise) {
-      return <RealCheckoutPlaceholder />;
-    }
-
-    return (
-      <Elements stripe={stripePromise}>
-        <RealCheckoutPlaceholder />
-      </Elements>
-    );
+    return <RealCheckoutPlaceholder />;
   }, []);
 
   return (
