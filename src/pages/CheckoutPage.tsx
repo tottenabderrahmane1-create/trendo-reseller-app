@@ -1,26 +1,13 @@
 import { FormEvent, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../stores/cartStore';
 
 type CheckoutResponse = {
   orderId: string;
-  clientSecret: string;
-};
-
-const cardElementOptions = {
-  style: {
-    base: {
-      color: 'var(--color-text-primary)',
-      fontSize: '16px'
-    }
-  }
 };
 
 export function CheckoutPage() {
-  const stripe = useStripe();
-  const elements = useElements();
   const navigate = useNavigate();
   const { items, clearCart } = useCartStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,7 +21,7 @@ export function CheckoutPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!stripe || !elements || isSubmitting) return;
+    if (isSubmitting) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -49,15 +36,6 @@ export function CheckoutPage() {
       if (!response.ok) throw new Error('Unable to initialize payment.');
 
       const payload = (await response.json()) as CheckoutResponse;
-      const card = elements.getElement(CardElement);
-      if (!card) throw new Error('Card details are missing.');
-
-      const result = await stripe.confirmCardPayment(payload.clientSecret, {
-        payment_method: { card }
-      });
-
-      if (result.error) throw new Error(result.error.message || 'Payment failed.');
-
       clearCart();
       navigate(`/orders/${payload.orderId}`);
     } catch (submissionError) {
@@ -72,12 +50,17 @@ export function CheckoutPage() {
       <section className="panel-grid">
         <form className="panel" onSubmit={handleSubmit}>
           <h1>Checkout</h1>
-          <p className="muted">Complete your secure payment using Stripe.</p>
+          <p className="muted">Secure payment details</p>
           <div className="card-field">
-            <CardElement options={cardElementOptions} />
+            <label>Card Number</label>
+            <input required placeholder="4242 4242 4242 4242" />
+            <label>Expiry</label>
+            <input required placeholder="MM/YY" />
+            <label>CVC</label>
+            <input required placeholder="CVC" />
           </div>
           {error ? <p className="error-text">{error}</p> : null}
-          <button type="submit" disabled={!stripe || isSubmitting} className="btn-primary">
+          <button type="submit" disabled={isSubmitting} className="btn-primary">
             {isSubmitting ? 'Processing...' : `Pay $${summary.total.toFixed(2)}`}
           </button>
         </form>
